@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import Chart from "../components/chart";
+import Chart from "../components/Chart";
 import TransactionTable from "../components/TransactionTable";
 
 export default function Dashboard() {
