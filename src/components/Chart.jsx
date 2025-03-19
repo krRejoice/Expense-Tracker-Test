@@ -12,6 +12,12 @@ import {
 } from "recharts";
 
 const Chart = ({ data }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="text-center font-bold">No data available to display.</div>
+    );
+  }
+
   const incomeData = data
     .filter((item) => item.type === "Income")
     .reduce((acc, cur) => acc + Number(cur.amount), 0);
@@ -25,22 +31,16 @@ const Chart = ({ data }) => {
   ];
 
   const monthlyData = data.reduce((acc, cur) => {
-    // const d = new Date(cur.dataKey);
-    // let month = toLocaleString(d.getMonth());
     const month = new Date(cur.date).toLocaleString("default", {
       month: "long",
     });
-    // console.log(month);
     if (!acc[month]) {
       acc[month] = { month, Income: 0, Expense: 0 };
     }
 
     acc[month][cur.type] += Number(cur.amount);
-    // console.log(acc);
     return acc;
   }, {});
-
-  //   console.log(monthlyData);
 
   const barChartData = Object.values(monthlyData);
 
