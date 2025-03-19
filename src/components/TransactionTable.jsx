@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Button,
   Table,
@@ -19,7 +19,6 @@ const TransactionTable = ({ data, setData }) => {
   const [editId, setEditId] = useState(null);
   const [editFormData, setEditFormData] = useState({});
   const [filterType, setFilterType] = useState("");
-  //   const [data, setData] = useState([]);
   const handleDelete = (id) => {
     const updatedData = data.filter((item) => item.id !== id);
     setData(updatedData);
@@ -50,9 +49,10 @@ const TransactionTable = ({ data, setData }) => {
     setFilterType(e.target.value);
   };
 
-  const filteredData = filterType
-    ? data.filter((item) => item.type === filterType)
-    : data;
+  const filteredData = useMemo(() => {
+    return filterType ? data.filter((item) => item.type === filterType) : data;
+  }, [data, filterType]);
+
   return (
     <>
       <h2
