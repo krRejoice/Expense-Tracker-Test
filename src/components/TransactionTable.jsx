@@ -108,96 +108,107 @@ const TransactionTable = ({ data, setData }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredData.map((item) => (
-              <TableRow key={item.id}>
-                {editId === item.id
-                  ? [
-                      "type",
-                      "category",
-                      "amount",
-                      "date",
-                      "reference",
-                      "description",
-                    ].map((field, index) => (
-                      <TableCell key={index}>
-                        {field === "type" ? (
-                          <TextField
-                            select
-                            label="Type"
-                            name={field}
-                            value={editFormData[field]}
-                            onChange={handleEditChange}
-                            size="small"
-                          >
-                            <MenuItem value="Expense">Expense</MenuItem>
-                            <MenuItem value="Income">Income</MenuItem>
-                          </TextField>
-                        ) : (
-                          <TextField
-                            name={field}
-                            type={
-                              field === "amount"
-                                ? "number"
-                                : field === "date"
-                                ? "date"
-                                : "text"
-                            }
-                            value={editFormData[field]}
-                            onChange={handleEditChange}
-                            size="small"
-                          />
-                        )}
-                      </TableCell>
-                    ))
-                  : [
-                      "type",
-                      "category",
-                      "amount",
-                      "date",
-                      "reference",
-                      "description",
-                    ].map((field, index) => (
-                      <TableCell key={index}>{item[field]}</TableCell>
-                    ))}
-                <TableCell>
-                  {editId === item.id ? (
-                    <>
-                      <Button
-                        color="primary"
-                        onClick={handleEditSave}
-                        style={{ textTransform: "none", marginRight: "10px" }}
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        color="secondary"
-                        onClick={() => setEditId(null)}
-                        style={{ textTransform: "none" }}
-                      >
-                        Cancel
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        color="primary"
-                        onClick={() => handleEdit(item)}
-                        style={{ textTransform: "none", marginRight: "10px" }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        color="error"
-                        onClick={() => handleDelete(item.id)}
-                        style={{ textTransform: "none" }}
-                      >
-                        Delete
-                      </Button>
-                    </>
-                  )}
+            {filteredData.length > 0 ? (
+              filteredData.map((item) => (
+                <TableRow key={item.id}>
+                  {editId === item.id
+                    ? [
+                        "type",
+                        "category",
+                        "amount",
+                        "date",
+                        "reference",
+                        "description",
+                      ].map((field, index) => (
+                        <TableCell key={index}>
+                          {field === "type" ? (
+                            <TextField
+                              select
+                              label="Type"
+                              name={field}
+                              value={editFormData[field]}
+                              onChange={handleEditChange}
+                              size="small"
+                            >
+                              <MenuItem value="Expense">Expense</MenuItem>
+                              <MenuItem value="Income">Income</MenuItem>
+                            </TextField>
+                          ) : (
+                            <TextField
+                              name={field}
+                              type={
+                                field === "amount"
+                                  ? "number"
+                                  : field === "date"
+                                  ? "date"
+                                  : "text"
+                              }
+                              value={editFormData[field]}
+                              onChange={handleEditChange}
+                              size="small"
+                            />
+                          )}
+                        </TableCell>
+                      ))
+                    : [
+                        "type",
+                        "category",
+                        "amount",
+                        "date",
+                        "reference",
+                        "description",
+                      ].map((field, index) => (
+                        <TableCell key={index}>{item[field]}</TableCell>
+                      ))}
+                  <TableCell>
+                    {editId === item.id ? (
+                      <>
+                        <Button
+                          color="primary"
+                          onClick={handleEditSave}
+                          style={{ textTransform: "none", marginRight: "10px" }}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          color="secondary"
+                          onClick={() => setEditId(null)}
+                          style={{ textTransform: "none" }}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          color="primary"
+                          onClick={() => handleEdit(item)}
+                          style={{ textTransform: "none", marginRight: "10px" }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          color="error"
+                          onClick={() => handleDelete(item.id)}
+                          style={{ textTransform: "none" }}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  style={{ textAlign: "center", color: "#999" }}
+                >
+                  No data found.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
