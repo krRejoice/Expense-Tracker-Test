@@ -11,7 +11,7 @@ function App() {
       <NavBar />
       <Routes>
         <Route path="/" element={<DashBoard />} />
-        <Route path="/Expense-form" element={<ExpenseForm />} />
+        <Route path="/expense-form" element={<ExpenseForm />} />
       </Routes>
     </Router>
   );
