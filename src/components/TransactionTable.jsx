@@ -19,6 +19,8 @@ const TransactionTable = ({ data, setData }) => {
   const [editId, setEditId] = useState(null);
   const [editFormData, setEditFormData] = useState({});
   const [filterType, setFilterType] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
+
   const handleDelete = (id) => {
     const updatedData = data.filter((item) => item.id !== id);
     setData(updatedData);
@@ -49,9 +51,21 @@ const TransactionTable = ({ data, setData }) => {
     setFilterType(e.target.value);
   };
 
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
+  };
+
   const filteredData = useMemo(() => {
-    return filterType ? data.filter((item) => item.type === filterType) : data;
-  }, [data, filterType]);
+    let result = filterType
+      ? data.filter((item) => item.type === filterType)
+      : data;
+    if (sortOrder === "asc") {
+      result = [...result].sort((a, b) => a.amount - b.amount);
+    } else if (sortOrder === "desc") {
+      result = [...result].sort((a, b) => b.amount - a.amount);
+    }
+    return result;
+  }, [data, filterType, sortOrder]);
 
   return (
     <>
@@ -76,6 +90,20 @@ const TransactionTable = ({ data, setData }) => {
           <MenuItem value="">All</MenuItem>
           <MenuItem value="Expense">Expense</MenuItem>
           <MenuItem value="Income">Income</MenuItem>
+        </Select>
+      </FormControl>
+      <FormControl
+        style={{
+          marginBottom: "20px",
+          minWidth: "200px",
+          marginLeft: "20px",
+        }}
+      >
+        <InputLabel>Sort by Amount</InputLabel>
+        <Select value={sortOrder} onChange={handleSortChange}>
+          <MenuItem value="">None</MenuItem>
+          <MenuItem value="asc">Ascending</MenuItem>
+          <MenuItem value="desc">Descending</MenuItem>
         </Select>
       </FormControl>
       <TableContainer
