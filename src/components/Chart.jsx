@@ -22,8 +22,6 @@ const Chart = ({ data }) => {
     [data]
   );
 
-  console.log(expenseData);
-
   const expenseData = useMemo(
     () =>
       data && data.length > 0
