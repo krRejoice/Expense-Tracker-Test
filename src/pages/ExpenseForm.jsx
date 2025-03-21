@@ -1,15 +1,18 @@
 import React from "react";
 import { useState } from "react";
 import { TextField, MenuItem, Button, Box } from "@mui/material";
+import { toast } from "react-toastify";
 
 const ExpenseForm = () => {
   const [formData, setFormData] = useState({
     type: "Expense",
+    title: "",
     amount: "",
     category: "",
     date: "",
     reference: "",
     description: "",
+    paymentMode: "Cash",
   });
 
   const [errors, setErrors] = useState({});
@@ -30,15 +33,22 @@ const ExpenseForm = () => {
     const newErrors = {};
     if (!formData.amount) {
       newErrors.amount = "Please enter Amount of income/expense";
+    } else if (formData.amount <= 0) {
+      newErrors.amount = "Amount must be positive";
+    }
+
+    if (!formData.title) {
+      newErrors.title = "Please enter a Title";
+    }
+
+    if (!formData.date || isNaN(new Date(formData.date).getTime())) {
+      newErrors.date = "A valid date is required.";
     }
     if (!formData.category) {
       newErrors.category = "Please enter a Category";
     }
-    if (!formData.reference) {
-      newErrors.reference = "Please enter a Reference";
-    }
-    if (!formData.description) {
-      newErrors.description = "Please enter a Description";
+    if (!formData.paymentMode) {
+      newErrors.paymentMode = "Please select a Payment Mode";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -58,13 +68,16 @@ const ExpenseForm = () => {
       localStorage.setItem("transaction", JSON.stringify(updatedData));
       setFormData({
         type: "Expense",
+        title: "",
         amount: "",
         category: "",
         date: "",
         reference: "",
         description: "",
+        paymentMode: "Cash",
       });
       setErrors({});
+      toast.success("Transaction Added Successfully");
     }
   };
 
@@ -96,6 +109,18 @@ const ExpenseForm = () => {
         <MenuItem value="Income">Income</MenuItem>
       </TextField>
       <TextField
+        label="Title"
+        name="title"
+        value={formData.title}
+        onChange={handleChange}
+        error={!!errors.title}
+        helperText={errors.title}
+        fullWidth
+        margin="normal"
+        sx={{ mb: 2 }}
+      />
+
+      <TextField
         label="Amount"
         name="amount"
         type="number"
@@ -108,6 +133,7 @@ const ExpenseForm = () => {
         sx={{ mb: 2 }}
       />
       <TextField
+        select
         label="Category"
         name="category"
         value={formData.category}
@@ -117,7 +143,15 @@ const ExpenseForm = () => {
         fullWidth
         margin="normal"
         sx={{ mb: 2 }}
-      />
+      >
+        <MenuItem value="Food">Food</MenuItem>
+        <MenuItem value="Travel">Travel</MenuItem>
+        <MenuItem value="Shopping">Shopping</MenuItem>
+        <MenuItem value="Bills">Bills</MenuItem>
+        <MenuItem value="Salary">Salary</MenuItem>
+        <MenuItem value="Freelancing">Freelancing</MenuItem>
+        <MenuItem value="Others">Others</MenuItem>
+      </TextField>
       <TextField
         type="date"
         name="date"
@@ -152,6 +186,23 @@ const ExpenseForm = () => {
         rows={4}
         sx={{ mb: 2 }}
       />
+      <TextField
+        select
+        label="Payment Mode"
+        name="paymentMode"
+        value={formData.paymentMode}
+        onChange={handleChange}
+        error={!!errors.paymentMode}
+        helperText={errors.paymentMode}
+        fullWidth
+        margin="normal"
+        sx={{ mb: 2 }}
+      >
+        <MenuItem value="Cash">Cash</MenuItem>
+        <MenuItem value="Card">Card</MenuItem>
+        <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
+        <MenuItem value="UPI">UPI</MenuItem>
+      </TextField>
       <Button
         type="submit"
         variant="contained"

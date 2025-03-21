@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
+import { toast } from "react-toastify";
 import {
   Button,
   Table,
@@ -20,11 +21,15 @@ const TransactionTable = ({ data, setData }) => {
   const [editFormData, setEditFormData] = useState({});
   const [filterType, setFilterType] = useState("");
   const [sortOrder, setSortOrder] = useState("");
+  const [formErrors, setFormErrors] = useState({});
+  const [searchTitle, setSearchTitle] = useState("");
+  const [debouncedSearchTitle, setDebouncedSearchTitle] = useState("");
 
   const handleDelete = (id) => {
     const updatedData = data.filter((item) => item.id !== id);
     setData(updatedData);
     localStorage.setItem("transaction", JSON.stringify(updatedData));
+    toast.success("Transaction deleted successfully!");
   };
 
   const handleEdit = (item) => {
@@ -35,9 +40,29 @@ const TransactionTable = ({ data, setData }) => {
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setEditFormData({ ...editFormData, [name]: value });
+    if (formErrors[name]) {
+      setFormErrors({ ...formErrors, [name]: "" });
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    if (!editFormData.type) errors.type = "Type is required.";
+    if (!editFormData.title) errors.title = "Title is required.";
+    if (!editFormData.category) errors.category = "Category is required.";
+    if (!editFormData.amount || editFormData.amount <= 0)
+      errors.amount = "Amount must be greater than 0.";
+    if (!editFormData.date || isNaN(new Date(editFormData.date).getTime())) {
+      errors.date = "A valid date is required.";
+    }
+    if (!editFormData.paymentMode)
+      errors.paymentMode = "Payment mode is required.";
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleEditSave = () => {
+    if (!validateForm()) return;
     const updatedData = data.map((item) =>
       item.id === editId ? { ...editFormData } : item
     );
@@ -45,6 +70,8 @@ const TransactionTable = ({ data, setData }) => {
     localStorage.setItem("transaction", JSON.stringify(updatedData));
     setEditId(null);
     setEditFormData({});
+    setFormErrors({});
+    toast.success("Transaction updated successfully!");
   };
 
   const handleFilterChange = (e) => {
@@ -55,17 +82,39 @@ const TransactionTable = ({ data, setData }) => {
     setSortOrder(e.target.value);
   };
 
+  const debounce = useCallback((func, delay) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  }, []);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTitle(value);
+    debounce((val) => setDebouncedSearchTitle(val), 300)(value);
+  };
+
   const filteredData = useMemo(() => {
     let result = filterType
       ? data.filter((item) => item.type === filterType)
       : data;
+
+    if (debouncedSearchTitle) {
+      result = result.filter((item) =>
+        item.title.toLowerCase().includes(debouncedSearchTitle.toLowerCase())
+      );
+    }
+
     if (sortOrder === "asc") {
       result = [...result].sort((a, b) => a.amount - b.amount);
     } else if (sortOrder === "desc") {
       result = [...result].sort((a, b) => b.amount - a.amount);
     }
+
     return result;
-  }, [data, filterType, sortOrder]);
+  }, [data, filterType, sortOrder, debouncedSearchTitle]);
 
   return (
     <>
@@ -79,6 +128,17 @@ const TransactionTable = ({ data, setData }) => {
       >
         Transactions
       </h2>
+      <TextField
+        label="Search by Title"
+        value={searchTitle}
+        onChange={handleSearchChange}
+        style={{
+          marginBottom: "20px",
+          minWidth: "300px",
+          display: "block",
+          margin: "0 auto",
+        }}
+      />
       <FormControl
         style={{
           marginBottom: "20px",
@@ -119,11 +179,13 @@ const TransactionTable = ({ data, setData }) => {
             <TableRow style={{ backgroundColor: "#f5f5f5" }}>
               {[
                 "Type",
+                "Title",
                 "Category",
                 "Amount",
                 "Date",
                 "Reference",
                 "Description",
+                "Payment Mode",
                 "Actions",
               ].map((header) => (
                 <TableCell
@@ -142,11 +204,13 @@ const TransactionTable = ({ data, setData }) => {
                   {editId === item.id
                     ? [
                         "type",
+                        "title",
                         "category",
                         "amount",
                         "date",
                         "reference",
                         "description",
+                        "paymentMode",
                       ].map((field, index) => (
                         <TableCell key={index}>
                           {field === "type" ? (
@@ -157,9 +221,29 @@ const TransactionTable = ({ data, setData }) => {
                               value={editFormData[field]}
                               onChange={handleEditChange}
                               size="small"
+                              error={!!formErrors[field]}
+                              helperText={formErrors[field]}
                             >
                               <MenuItem value="Expense">Expense</MenuItem>
                               <MenuItem value="Income">Income</MenuItem>
+                            </TextField>
+                          ) : field === "paymentMode" ? (
+                            <TextField
+                              select
+                              label="Payment Mode"
+                              name={field}
+                              value={editFormData[field]}
+                              onChange={handleEditChange}
+                              size="small"
+                              error={!!formErrors[field]}
+                              helperText={formErrors[field]}
+                            >
+                              <MenuItem value="Cash">Cash</MenuItem>
+                              <MenuItem value="Card">Card</MenuItem>
+                              <MenuItem value="Online">Online</MenuItem>
+                              <MenuItem value="Bank Transfer">
+                                Bank Transfer
+                              </MenuItem>
                             </TextField>
                           ) : (
                             <TextField
@@ -174,19 +258,43 @@ const TransactionTable = ({ data, setData }) => {
                               value={editFormData[field]}
                               onChange={handleEditChange}
                               size="small"
+                              error={!!formErrors[field]}
+                              helperText={formErrors[field]}
                             />
                           )}
                         </TableCell>
                       ))
                     : [
                         "type",
+                        "title",
                         "category",
                         "amount",
                         "date",
                         "reference",
                         "description",
+                        "paymentMode",
                       ].map((field, index) => (
-                        <TableCell key={index}>{item[field]}</TableCell>
+                        <TableCell key={index}>
+                          {editId === item.id ? (
+                            <TextField
+                              name={field}
+                              type={
+                                field === "amount"
+                                  ? "number"
+                                  : field === "date"
+                                  ? "date"
+                                  : "text"
+                              }
+                              value={editFormData[field]}
+                              onChange={handleEditChange}
+                              size="small"
+                              error={!!formErrors[field]}
+                              helperText={formErrors[field]}
+                            />
+                          ) : (
+                            item[field]
+                          )}
+                        </TableCell>
                       ))}
                   <TableCell>
                     {editId === item.id ? (
@@ -230,7 +338,7 @@ const TransactionTable = ({ data, setData }) => {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   style={{ textAlign: "center", color: "#999" }}
                 >
                   No data found.
